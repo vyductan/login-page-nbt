@@ -1,0 +1,6 @@
+@import './preflight.css';
+
+a:hover {
+  color: currentColor;
+}
+
