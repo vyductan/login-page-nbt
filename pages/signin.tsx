@@ -2,6 +2,8 @@ import { styled } from '../stitches.config'
 import Image from 'next/image'
 import Main from '../components/FormSignIn'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { getSession } from "next-auth/react"
+import { GetServerSideProps } from 'next'
 
 const Container = styled('div', {
   display: 'flex',
@@ -37,6 +39,25 @@ const SignIn = ({ }: Props) => {
 
 
   )
+}
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { req } = context
+  const session = await getSession({ req })
+
+  if (session && session.user) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false
+      }
+    }
+  }
+
+  return {
+    props: {
+    }
+  }
 }
 
 export default SignIn

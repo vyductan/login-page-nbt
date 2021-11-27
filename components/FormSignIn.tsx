@@ -1,8 +1,9 @@
-import axios from 'axios'
 import Image from 'next/image'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { styled } from '../stitches.config'
 import ModalDialog from './ModalDialog'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/router'
 
 const Container = styled('div', {
   display: 'flex',
@@ -74,7 +75,21 @@ export default function Main() {
   const [error, setError] = useState(false)
   const [showPass, setShowPass] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
+  const router = useRouter()
 
+  useEffect(() => {
+    if (!refEmail.current) return
+    if (router.query.error) {
+      refEmail.current.value = router.query.email as string || ''
+      setModalVisible(true)
+    }
+  }, [router])
+
+  function handleKeyUp(e: any) {
+    if (e.key === 'Enter') {
+      handleSubmit()
+    }
+  }
 
   const handleSubmit = async () => {
     const email = refEmail.current?.value
@@ -85,11 +100,15 @@ export default function Main() {
       return
     }
     try {
-      await axios.post('http://mcapi.yougo.vn/api/auth/login', {
-        email,
-        password
-      })
-      window.location.href = '/'
+      signIn('credentials',
+        {
+          email,
+          password,
+          // The page where you want to redirect to after a 
+          // successful login
+          callbackUrl: `${window.location.origin}`
+        }
+      )
     } catch (error) {
       setModalVisible(true)
     }
@@ -99,10 +118,10 @@ export default function Main() {
     <Form>
       <Title>Đăng nhập tài khoản</Title>
       <Label color={error ? 'error' : undefined}>Email</Label>
-      <Input ref={refEmail} placeholder="Nhập email" type='email' borderColor={error ? 'error' : undefined} onInput={() => setError(false)} />
+      <Input ref={refEmail} placeholder="Nhập email" type='email' borderColor={error ? 'error' : undefined} onInput={() => setError(false)} onKeyUp={handleKeyUp} />
       {error && <ErrorMsg>Email sai định dạng</ErrorMsg>}
       <Label >Mật khẩu</Label>
-      <Input ref={refPass} placeholder="Nhập mật khẩu" type={showPass ? 'text' : 'password'} />
+      <Input ref={refPass} placeholder="Nhập mật khẩu" type={showPass ? 'text' : 'password'} onKeyUp={handleKeyUp} />
       <ShowPass onClick={() => setShowPass(!showPass)}>{showPass ? 'Ẩn' : 'Hiện'} mật khẩu</ShowPass>
       <Submit onClick={handleSubmit}>Đăng nhập</Submit>
       <ForgotPass>Quên thông tin đăng nhập</ForgotPass>

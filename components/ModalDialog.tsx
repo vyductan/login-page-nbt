@@ -1,5 +1,5 @@
 import { Button } from 'antd'
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { styled } from '../stitches.config'
 import Image from 'next/image'
@@ -84,6 +84,20 @@ type Props = {
 }
 export default function ModalDialog(props: Props) {
   const { title, message, visible, onCancel } = props
+
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => {
+      if (event.code === "Enter" || event.code === "NumpadEnter") {
+        onCancel()
+        event.preventDefault();
+        // callMyFunction();
+      }
+    };
+    document.addEventListener("keydown", listener);
+    return () => {
+      document.removeEventListener("keydown", listener);
+    };
+  }, []);
 
   function handleCancel() {
     onCancel()
